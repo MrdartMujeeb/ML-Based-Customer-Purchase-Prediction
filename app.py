@@ -14,8 +14,10 @@ st.write("Select a model and enter customer details to predict purchase behavior
 
 @st.cache_resource
 def load_models():
+    # Load the scaler
     scaler = joblib.load("models/scaler.pkl")
 
+    # Load the models
     models = {
         "Logistic Regression": joblib.load("models/logistic_model.pkl"),
         "Random Forest": joblib.load("models/rf_model.pkl"),
@@ -25,7 +27,7 @@ def load_models():
 
     return scaler, models
 
-
+# Load models
 scaler, models = load_models()
 
 # -----------------------------
@@ -60,7 +62,6 @@ with col2:
 # -----------------------------
 
 if st.button("Predict"):
-
     # Prepare input data
     input_data = np.array([[age, gender, income, purchases,
                             category, time_spent, loyalty, discounts]])
