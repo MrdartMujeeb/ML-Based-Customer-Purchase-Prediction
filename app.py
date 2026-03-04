@@ -38,7 +38,7 @@ if st.button("Predict"):
     input_data = np.array([[age, gender, income, purchases, category, time_spent, loyalty, discounts]])
     
     # Load Scaler and Transform Data
-    scaler = joblib.load('scaler.pkl')
+    scaler = joblib.load('preprocessor.pkl')
     scaled_data = scaler.transform(input_data)
     
     # Load Selected Model
@@ -49,3 +49,4 @@ if st.button("Predict"):
         st.success(f"Result ({model_choice}): Likely to Purchase!")
     else:
         st.warning(f"Result ({model_choice}): Unlikely to Purchase.")
+
