@@ -68,7 +68,12 @@ if page == "🏠 Home (Predictor)":
                     "NumberOfPurchases": purchases, "ProductCategory": category,
                     "TimeSpentOnWebsite": time_spent, "LoyaltyProgram": loyalty, "DiscountsAvailed": discounts
                 }])
-                input_processed = scaler.transform(input_data) if model_choice in ["Logistic Regression", "XGBoost"] else input_data
+                
+                if model_choice in ["Logistic Regression", "XGBoost"]:
+                    input_processed = scaler.transform(input_data)
+                else:
+                    input_processed = input_data
+                    
                 prediction = models[model_choice].predict(input_processed)[0]
                 if prediction == 1: st.success("✅ Result: Customer is likely to PURCHASE.")
                 else: st.warning("❌ Result: Customer is NOT likely to purchase.")
@@ -79,7 +84,10 @@ if page == "🏠 Home (Predictor)":
             if uploaded_file:
                 data = pd.read_csv(uploaded_file)
                 if st.button("Run Batch Prediction"):
-                    processed = scaler.transform(data) if model_choice in ["Logistic Regression", "XGBoost"] else data
+                    if model_choice in ["Logistic Regression", "XGBoost"]:
+                        processed = scaler.transform(data)
+                    else:
+                        processed = data
                     preds = models[model_choice].predict(processed)
                     data['Result'] = preds
                     data['Label'] = data['Result'].map({1: '✅ Purchase', 0: '❌ No Purchase'})
@@ -97,13 +105,15 @@ elif page == "👥 About Us":
     col1, col2 = st.columns(2)
     
     with col1:
-        st.image("https://picsum.photos/seed/mujeeb/400/400", use_container_width=True)
+        # Fixed: Changed use_container_width to use_column_width
+        st.image("https://picsum.photos/seed/mujeeb/400/400", use_column_width=True)
         st.subheader("Mujeeb Ahmed")
         st.write("**Lead Developer & Data Scientist**")
         st.write("Mujeeb is responsible for the core architecture, model training, and the interactive UI design of this project.")
         
     with col2:
-        st.image("https://picsum.photos/seed/hassan/400/400", use_container_width=True)
+        # Fixed: Changed use_container_width to use_column_width
+        st.image("https://picsum.photos/seed/hassan/400/400", use_column_width=True)
         st.subheader("Muhammad Hassan Solangi")
         st.write("**ML Engineer & Researcher**")
         st.write("Hassan focused on feature engineering, model optimization, and ensuring the accuracy of the prediction algorithms.")
@@ -140,7 +150,8 @@ elif page == "🎓 Our Mentors":
     for providing the platform and resources to make this project a reality.
     """)
     
-    st.image("https://picsum.photos/seed/university/800/300", caption="IBA Sukkur - Center of Excellence", use_container_width=True)
+    # Fixed: Changed use_container_width to use_column_width
+    st.image("https://picsum.photos/seed/university/800/300", caption="IBA Sukkur - Center of Excellence", use_column_width=True)
 
 # --- Footer ---
 st.sidebar.divider()
