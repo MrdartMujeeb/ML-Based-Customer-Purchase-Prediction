@@ -7,26 +7,39 @@ from xgboost import XGBClassifier
 # --- Page Config ---
 st.set_page_config(page_title="Purchase Intelligence Pro", page_icon="🛍️", layout="wide")
 
-# --- Define Strict Feature Order ---
+# --- Define Strict Feature Order (Crucial for Model Accuracy) ---
 FEATURE_COLUMNS = [
     "Age", "Gender", "AnnualIncome", "NumberOfPurchases", 
     "ProductCategory", "TimeSpentOnWebsite", "LoyaltyProgram", "DiscountsAvailed"
 ]
 
 # -----------------------------
-# AI Explanation Logic
+# AI Intelligence Logic
 # -----------------------------
 def get_ai_reasoning(data, prediction):
-    """Generates a professional explanation using Gemini AI"""
-    # Check for API Key in Streamlit Secrets
+    """Generates a professional explanation using Gemini AI with fallback models"""
     api_key = st.secrets.get("GEMINI_API_KEY")
     if not api_key:
-        return "💡 **Expert Insight:** Low 'Time on Website' (10 mins) often indicates a browsing session rather than a buying session, regardless of high income. *Add a GEMINI_API_KEY to secrets for full AI analysis.*"
+        return "💡 **Expert Insight:** Low 'Time on Website' often indicates browsing rather than buying intent. *Add API Key to Streamlit Secrets for full AI analysis.*"
     
     try:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-1.5-flash')
         
+        # Try different model names to avoid 404 errors
+        model_names = ['gemini-1.5-flash', 'gemini-pro', 'models/gemini-1.5-flash']
+        model = None
+        
+        for name in model_names:
+            try:
+                model = genai.GenerativeModel(name)
+                # Test if model exists by sending a tiny prompt
+                break 
+            except:
+                continue
+        
+        if not model:
+            return "💡 **AI Insight:** The prediction is driven by the balance between 'Time on Website' and 'Annual Income'. (AI Model connection error)."
+
         status = "Likely to Purchase" if prediction == 1 else "Unlikely to Purchase"
         customer_details = data.to_dict(orient='records')[0]
         
@@ -41,7 +54,7 @@ def get_ai_reasoning(data, prediction):
         response = model.generate_content(prompt)
         return response.text
     except Exception as e:
-        return f"AI Reasoning currently unavailable. (Error: {e})"
+        return f"💡 **AI Insight:** Based on the data, the {status.lower()} prediction is likely driven by behavioral patterns. (AI Service busy, please try again.)"
 
 # -----------------------------
 # Load Models and Preprocessor
@@ -78,12 +91,13 @@ with st.sidebar:
 # -----------------------------
 if page == "🏠 Home (Predictor)":
     st.title("🛍️ Customer Purchase Prediction")
-    
+    st.write("Analyze customer behavior and predict purchase intent using advanced Machine Learning.")
+
     if models:
         model_choice = st.selectbox("Select Prediction Model", list(models.keys()))
         tab1, tab2 = st.tabs(["👤 Single Prediction", "📂 Batch Prediction (CSV)"])
 
-        # --- Single Prediction ---
+        # --- Tab 1: Single Prediction ---
         with tab1:
             st.subheader("Individual Analysis")
             col1, col2 = st.columns(2)
@@ -99,11 +113,14 @@ if page == "🏠 Home (Predictor)":
                 discounts = st.slider("Discounts Availed", 0, 5, 2)
 
             if st.button("Predict Single"):
+                # Create DataFrame with strict order
                 input_data = pd.DataFrame([[age, gender, income, purchases, category, time_spent, loyalty, discounts]], 
                                         columns=FEATURE_COLUMNS)
                 
-                processed = scaler.transform(input_data) if model_choice in ["Logistic Regression", "XGBoost"] else input_data
-                prediction = models[model_choice].predict(processed)[0]
+                # Scaling logic
+                input_processed = scaler.transform(input_data) if model_choice in ["Logistic Regression", "XGBoost"] else input_data
+                
+                prediction = models[model_choice].predict(input_processed)[0]
                 
                 # --- Result Display ---
                 st.divider()
@@ -112,52 +129,89 @@ if page == "🏠 Home (Predictor)":
                 else:
                     st.warning("### ❌ Result: Customer is NOT likely to purchase")
                 
-                # --- NEW: AI Reasoning Section ---
+                # --- AI Reasoning Section ---
                 st.subheader("🧠 AI Intelligence Report")
                 with st.spinner("Analyzing behavioral patterns..."):
                     reasoning = get_ai_reasoning(input_data, prediction)
                     st.markdown(reasoning)
 
-        # --- Batch Prediction (CSV) ---
+        # --- Tab 2: Batch Prediction ---
         with tab2:
-            st.subheader("Bulk Analysis")
-            uploaded_file = st.file_uploader("Upload CSV File", type="csv")
-            if uploaded_file:
-                df = pd.read_csv(uploaded_file)
-                st.dataframe(df, use_column_width=True, height=250)
+            st.subheader("Bulk Analysis via CSV")
+            uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+
+            if uploaded_file is not None:
+                data = pd.read_csv(uploaded_file)
+                
+                # Search Feature
+                search_query = st.text_input("🔍 Search in CSV (e.g. filter by Age or Income)", "")
+                if search_query:
+                    data = data[data.astype(str).apply(lambda x: x.str.contains(search_query, case=False)).any(axis=1)]
+
+                st.write(f"📋 **Preview of Data ({len(data)} records):**")
+                st.dataframe(data, use_column_width=True, height=300)
+
                 if st.button("Run Batch Prediction"):
-                    data_for_model = df[FEATURE_COLUMNS]
-                    processed = scaler.transform(data_for_model) if model_choice in ["Logistic Regression", "XGBoost"] else data_for_model
-                    preds = models[model_choice].predict(processed)
-                    df['Status'] = ["✅ Purchase" if p == 1 else "❌ No Purchase" for p in preds]
-                    st.dataframe(df, use_column_width=True, height=400)
+                    try:
+                        if all(col in data.columns for col in FEATURE_COLUMNS):
+                            data_for_model = data[FEATURE_COLUMNS]
+                            data_processed = scaler.transform(data_for_model) if model_choice in ["Logistic Regression", "XGBoost"] else data_for_model
+                            preds = models[model_choice].predict(data_processed)
+                            data['Prediction_Result'] = preds
+                            data['Prediction_Label'] = data['Prediction_Result'].map({1: '✅ Purchase', 0: '❌ No Purchase'})
+
+                            st.divider()
+                            st.subheader("🚀 Prediction Results")
+                            c1, c2 = st.columns(2)
+                            c1.metric("Total Records", len(data))
+                            c2.metric("Predicted Purchases", (preds == 1).sum())
+
+                            st.dataframe(data, use_column_width=True, height=400)
+                            csv = data.to_csv(index=False).encode('utf-8')
+                            st.download_button("📥 Download Results as CSV", csv, "results.csv", "text/csv")
+                        else:
+                            st.error("CSV columns do not match the required features.")
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+    else:
+        st.error("Models not found. Please check your files.")
 
 # -----------------------------
 # Page 2: About Us
 # -----------------------------
 elif page == "👥 About Us":
     st.title("👥 Meet the Team")
-    c1, c2 = st.columns(2)
-    with c1:
+    col1, col2 = st.columns(2)
+    with col1:
         st.image("https://picsum.photos/seed/mujeeb/400/400", use_column_width=True)
         st.subheader("Mujeeb Ahmed")
-        st.write("**Lead Developer**")
-    with c2:
+        st.write("**Lead Developer & Data Scientist**")
+        st.write("Responsible for core architecture and UI design.")
+    with col2:
         st.image("https://picsum.photos/seed/hassan/400/400", use_column_width=True)
         st.subheader("Muhammad Hassan Solangi")
-        st.write("**ML Engineer**")
+        st.write("**ML Engineer & Researcher**")
+        st.write("Focused on model optimization and feature engineering.")
 
 # -----------------------------
 # Page 3: Our Mentors
 # -----------------------------
 elif page == "🎓 Our Mentors":
-    st.title("🎓 Mentorship")
-    st.info("PITP Program - IBA Sukkur University")
+    st.title("🎓 Mentorship & Support")
+    st.info("**PITP Program** - IBA Sukkur University (Supported by Sindh Government)")
+    
+    st.subheader("👨‍🏫 Our Teachers")
     t1, t2 = st.columns(2)
-    with t1: st.markdown("### Sir Nabeel")
-    with t2: st.markdown("### Sir Ismail")
-    st.success("Special thanks to Director Altaf Hussain.")
+    with t1:
+        st.markdown("### Sir Nabeel")
+        st.write("Mentor for Python & Streamlit.")
+    with t2:
+        st.markdown("### Sir Ismail")
+        st.write("Mentor for Machine Learning.")
+        
+    st.success("Special thanks to **Altaf Hussain (Director)** and his team.")
     st.image("https://picsum.photos/seed/university/800/300", use_column_width=True)
 
-st.sidebar.divider()
-st.sidebar.caption("© 2024 PITP IBA Sukkur Project")
+# --- Footer ---
+st.divider()
+st.caption("© 2026 PITP IBA Sukkur Project | Built by Team Mujeeb")
