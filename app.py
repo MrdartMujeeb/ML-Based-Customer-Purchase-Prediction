@@ -61,14 +61,25 @@ if page == "🏠 Home (Predictor)":
                 input_data = pd.DataFrame([[age, gender, income, purchases, category, time_spent, loyalty, discounts]], columns=FEATURE_COLUMNS)
                 processed = scaler.transform(input_data) if model_choice in ["Logistic Regression", "XGBoost"] else input_data
                 prediction = models[model_choice].predict(processed)[0]
-                st.session_state['last_prediction'] = {'status': "Likely to Purchase" if prediction == 1 else "Unlikely to Purchase", 'data': input_data.to_dict(orient='records')[0]}
+                
+                # Store prediction in session state to keep it visible during chat
+                st.session_state['last_prediction'] = {
+                    'status': "Likely to Purchase" if prediction == 1 else "Unlikely to Purchase", 
+                    'data': input_data.to_dict(orient='records')[0],
+                    'is_purchase': True if prediction == 1 else False
+                }
+                # Reset chat when a new prediction is made
                 if "messages" in st.session_state: del st.session_state.messages
-                st.divider()
-                if prediction == 1: st.success("### ✅ Result: Customer is likely to PURCHASE")
-                else: st.warning("### ❌ Result: Customer is NOT likely to purchase")
 
-            # --- ULTIMATE AI CHAT SECTION ---
+            # --- DISPLAY PREDICTION RESULT (Outside the button click) ---
             if 'last_prediction' in st.session_state:
+                st.divider()
+                if st.session_state.last_prediction['is_purchase']:
+                    st.success(f"### ✅ Result: Customer is {st.session_state.last_prediction['status']}")
+                else:
+                    st.warning(f"### ❌ Result: Customer is {st.session_state.last_prediction['status']}")
+
+                # --- ULTIMATE AI CHAT SECTION ---
                 st.divider()
                 st.subheader("💬 AI Assistant Review & Chat")
                 if "messages" not in st.session_state: st.session_state.messages = []
