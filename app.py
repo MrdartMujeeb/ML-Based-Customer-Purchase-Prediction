@@ -160,12 +160,15 @@ This app predicts whether a customer is likely to make a purchase.
                 except Exception as e:
                     st.error(f"Batch prediction failed: {e}")
 
+# -----------------------------
 # ABOUT US PAGE
+# -----------------------------
 elif page == "👥 About Us":
     st.title("👥 Meet The Team")
+
     col1, col2 = st.columns(2)
 
-    # Load images safely
+    # Safe image loading
     try:
         mujeeb_img = Image.open("mujeeb.jpeg")
     except:
@@ -179,20 +182,41 @@ elif page == "👥 About Us":
     with col1:
         if mujeeb_img:
             st.image(mujeeb_img, width=220)
-        else:
-            st.warning("Mujeeb image not found")
         st.markdown("<h3 style='text-align:center'>Mujeeb Ahmed</h3>", unsafe_allow_html=True)
         st.markdown("<p style='text-align:center'>Lead Developer</p>", unsafe_allow_html=True)
 
     with col2:
         if hassan_img:
             st.image(hassan_img, width=220)
-        else:
-            st.warning("Hassan image not found")
         st.markdown("<h3 style='text-align:center'>Muhammad Hassan Solangi</h3>", unsafe_allow_html=True)
         st.markdown("<p style='text-align:center'>AI Engineer</p>", unsafe_allow_html=True)
 
+    st.divider()
+    st.subheader("📌 Project Overview")
+    st.markdown("""
+    In this project, we developed **Purchase Intelligence Pro**, an AI-powered system that predicts whether a customer 
+    is likely to make a purchase using machine learning models including **Logistic Regression, Decision Tree, Random Forest, and XGBoost**.
+    The app supports **single customer prediction** as well as **batch prediction from CSV files**, helping businesses 
+    identify high-value customers efficiently.
+    """)
+
+    st.subheader("💡 What We Learned")
+    st.markdown("""
+- **Python**: From basic syntax to advanced concepts  
+- **Data Science Libraries**:  
+  - `NumPy` for numerical computations  
+  - `Pandas` for data manipulation  
+  - `Matplotlib` & `Seaborn` for data visualization  
+  - `Scikit-learn` for machine learning models and preprocessing  
+- **Machine Learning Concepts**: Supervised learning, model evaluation, feature scaling, and model comparison  
+- **Practical ML Deployment**: Building and deploying ML apps with **Streamlit**  
+- **Freelancing & Entrepreneurship**: Short classes on freelancing, business basics, and earning online  
+- **Presentation Skills**: How to present projects and explain technical concepts clearly
+    """)
+
+# -----------------------------
 # MENTORS PAGE
+# -----------------------------
 elif page == "🎓 Our Mentors":
     st.title("🎓 Mentorship")
     st.info("IBA Sukkur – PITP Program")
@@ -205,6 +229,8 @@ elif page == "🎓 Our Mentors":
         st.write("Machine Learning Mentor")
     st.success("Special thanks to Sir Altaf Hussain and the entire IBA Sukkur team.")
 
+# -----------------------------
 # Footer
+# -----------------------------
 st.divider()
 st.caption("© 2026 PITP IBA Sukkur Project | Built by Team Mujeeb")
