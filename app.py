@@ -13,34 +13,7 @@ st.set_page_config(
 )
 
 # -----------------------------
-# Custom CSS
-# -----------------------------
-st.markdown("""
-<style>
-.team-img {
-    border-radius: 50%;
-    width: 200px;
-    height: 200px;
-    object-fit: cover;
-    margin-bottom: 15px;
-    border: 4px solid #f0f2f6;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-}
-.img-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 15px;
-    margin: 10px;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# -----------------------------
-# Feature Order (IMPORTANT)
+# Feature Order
 # -----------------------------
 FEATURE_COLUMNS = [
     "Age",
@@ -63,12 +36,10 @@ def load_models():
 
         scaler = joblib.load("preprocessor.pkl")
 
-        # load sklearn models
         logistic = joblib.load("logistic_regression_model.pkl")
         rf = joblib.load("random_forest_model.pkl")
         dt = joblib.load("decision_tree_model.pkl")
 
-        # load xgboost json model
         xgb = XGBClassifier()
         xgb.load_model("xgboost_model.json")
 
@@ -105,7 +76,6 @@ with st.sidebar:
     )
 
     st.divider()
-
     st.caption("Built with ❤️ by Team Mujeeb")
 
 # -----------------------------
@@ -148,16 +118,11 @@ if page == "🏠 Home (Predictor)":
                 format_func=lambda x: "Female" if x == 0 else "Male"
             )
 
-            income = st.number_input(
-                "Annual Income",
-                value=60000
-            )
+            income = st.number_input("Annual Income", value=60000)
 
             purchases = st.number_input(
                 "Number of Previous Purchases",
-                0,
-                20,
-                5
+                0, 20, 5
             )
 
         with col2:
@@ -180,16 +145,13 @@ if page == "🏠 Home (Predictor)":
 
             discounts = st.slider(
                 "Discounts Availed",
-                0,
-                5,
-                1
+                0, 5, 1
             )
 
         if st.button("Predict"):
 
             try:
 
-                # create dataframe
                 input_data = pd.DataFrame(
                     [[
                         age,
@@ -204,7 +166,6 @@ if page == "🏠 Home (Predictor)":
                     columns=FEATURE_COLUMNS
                 )
 
-                # scaling
                 input_scaled = scaler.transform(input_data)
 
                 model = models[model_choice]
@@ -225,7 +186,6 @@ if page == "🏠 Home (Predictor)":
                     )
 
                 st.subheader("Input Summary")
-
                 st.dataframe(input_data)
 
             except Exception as e:
@@ -249,7 +209,6 @@ if page == "🏠 Home (Predictor)":
             data = pd.read_csv(uploaded_file)
 
             st.write("Preview of Uploaded Data")
-
             st.dataframe(data)
 
             if st.button("Run Batch Prediction"):
@@ -275,14 +234,10 @@ if page == "🏠 Home (Predictor)":
                         data["Prediction"] = preds
 
                         data["Prediction_Label"] = data["Prediction"].map(
-                            {
-                                1: "Purchase",
-                                0: "No Purchase"
-                            }
+                            {1: "Purchase", 0: "No Purchase"}
                         )
 
                         st.subheader("Prediction Results")
-
                         st.dataframe(data)
 
                         csv = data.to_csv(index=False).encode("utf-8")
@@ -299,7 +254,7 @@ if page == "🏠 Home (Predictor)":
                     st.error(f"Batch prediction failed: {e}")
 
 # -----------------------------
-# ABOUT PAGE
+# ABOUT PAGE (YOUR REAL PHOTOS)
 # -----------------------------
 elif page == "👥 About Us":
 
@@ -309,23 +264,15 @@ elif page == "👥 About Us":
 
     with col1:
 
-        st.markdown("""
-        <div class="img-container">
-        <img src="https://picsum.photos/seed/mujeeb/400/400" class="team-img">
-        <h3>Mujeeb Ahmed</h3>
-        <p>Lead Developer</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.image("my image3.jpeg", width=300)
+        st.subheader("Mujeeb Ahmed")
+        st.write("Lead Developer")
 
     with col2:
 
-        st.markdown("""
-        <div class="img-container">
-        <img src="https://picsum.photos/seed/hassan/400/400" class="team-img">
-        <h3>Muhammad Hassan</h3>
-        <p>ML Engineer</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.image("Hassan.jpg", width=300)
+        st.subheader("Muhammad Hassan Solangi")
+        st.write("ML Engineer")
 
 # -----------------------------
 # MENTORS PAGE
@@ -340,23 +287,13 @@ elif page == "🎓 Our Mentors":
 
     with col1:
 
-        st.markdown("""
-        <div class="img-container">
-        <img src="https://picsum.photos/seed/nabeel/400/400" class="team-img">
-        <h3>Sir Nabeel</h3>
-        <p>Python Mentor</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.subheader("Sir Nabeel")
+        st.write("Python Mentor")
 
     with col2:
 
-        st.markdown("""
-        <div class="img-container">
-        <img src="https://picsum.photos/seed/ismail/400/400" class="team-img">
-        <h3>Sir Ismail</h3>
-        <p>Machine Learning Mentor</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.subheader("Sir Ismail")
+        st.write("Machine Learning Mentor")
 
     st.success("Special thanks to Sir Altaf Hussain and the entire IBA Sukkur team.")
 
