@@ -159,12 +159,12 @@ if page == "🏠 Home (Predictor)":
                     st.markdown("#### 🎯 Behavioral Analysis")
                     if is_p:
                         st.success("✅ **High Intent Profile**")
-                        st.write(f"- Customer shows strong engagement with **{data['TimeOnWebsite']} minutes** on site.")
+                        st.write(f"- Customer shows strong engagement with **{data['TimeSpentOnWebsite']} minutes** on site.")
                         st.write(f"- Annual income of **${data['AnnualIncome']:,}** provides high purchasing power.")
                     else:
                         st.error("📉 **Low Conversion Risk**")
-                        if data['TimeOnWebsite'] < 20:
-                            st.write(f"- **Engagement Gap**: Only {data['TimeOnWebsite']} mins spent. Customer is likely 'bouncing'.")
+                        if data['TimeSpentOnWebsite'] < 20:
+                            st.write(f"- **Engagement Gap**: Only {data['TimeSpentOnWebsite']} mins spent. Customer is likely 'bouncing'.")
                         if data['DiscountsAvailed'] < 1:
                             st.write("- **Price Sensitivity**: No discounts used. Customer may be waiting for a deal.")
                 
@@ -181,7 +181,7 @@ if page == "🏠 Home (Predictor)":
                 st.markdown("#### 📈 Profile Strength")
                 chart_data = pd.DataFrame({
                     'Metric': ['Income', 'Engagement', 'Experience'],
-                    'Score': [data['AnnualIncome']/150000, data['TimeOnWebsite']/60, data['NumberOfPriorPurchases']/20]
+                    'Score': [data['AnnualIncome']/150000, data['TimeSpentOnWebsite']/60, data['NumberOfPurchases']/20]
                 })
                 st.bar_chart(chart_data.set_index('Metric'))
 
