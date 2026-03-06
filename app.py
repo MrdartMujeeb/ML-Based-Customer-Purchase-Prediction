@@ -90,22 +90,6 @@ with st.sidebar:
     page = st.radio("Go to", ["🏠 Home (Predictor)", "👥 About Us", "🎓 Our Mentors"])
     st.divider()
     st.caption("Built with ❤️ by Team Mujeeb")
-    
-    # --- AI Connection Test ---
-    with st.expander("🛠️ AI Connection Test"):
-        if st.button("Run Test"):
-            api_key = st.secrets.get("GEMINI_API_KEY") or os.environ.get("GEMINI_API_KEY")
-            if not api_key:
-                st.error("No API Key found in Secrets or Environment.")
-            else:
-                try:
-                    genai.configure(api_key=api_key)
-                    model = genai.GenerativeModel('gemini-pro')
-                    response = model.generate_content("test")
-                    st.success("✅ Connection Successful!")
-                    st.write(f"Model used: gemini-pro")
-                except Exception as e:
-                    st.error(f"❌ Connection Failed: {e}")
 
 # -----------------------------
 # Page 1: Home (Prediction Engine)
@@ -162,93 +146,44 @@ if page == "🏠 Home (Predictor)":
                 else:
                     st.warning(f"### ❌ Result: Customer is {st.session_state.last_prediction['status']}")
 
-                # --- GENIUS AI CHAT ASSISTANT SECTION ---
+                # --- STRATEGIC BUSINESS INSIGHTS (Stable & Professional) ---
                 st.divider()
-                st.subheader("💬 AI Assistant Review & Chat")
-                st.info("Ask the AI why this prediction was made or how to improve conversion for this customer.")
+                st.subheader("📊 Strategic Business Insights")
+                
+                data = st.session_state.last_prediction['data']
+                is_p = st.session_state.last_prediction['is_purchase']
+                
+                col_ins1, col_ins2 = st.columns(2)
+                
+                with col_ins1:
+                    st.markdown("#### 🎯 Behavioral Analysis")
+                    if is_p:
+                        st.success("✅ **High Intent Profile**")
+                        st.write(f"- Customer shows strong engagement with **{data['TimeOnWebsite']} minutes** on site.")
+                        st.write(f"- Annual income of **${data['AnnualIncome']:,}** provides high purchasing power.")
+                    else:
+                        st.error("📉 **Low Conversion Risk**")
+                        if data['TimeOnWebsite'] < 20:
+                            st.write(f"- **Engagement Gap**: Only {data['TimeOnWebsite']} mins spent. Customer is likely 'bouncing'.")
+                        if data['DiscountsAvailed'] < 1:
+                            st.write("- **Price Sensitivity**: No discounts used. Customer may be waiting for a deal.")
+                
+                with col_ins2:
+                    st.markdown("#### 💡 Actionable Recommendations")
+                    if is_p:
+                        st.write("1. **Upsell**: Recommend premium items in Category " + str(data['ProductCategory']) + ".")
+                        st.write("2. **Loyalty**: Enroll in the VIP program to secure long-term value.")
+                    else:
+                        st.write("1. **Retargeting**: Send a personalized email for Category " + str(data['ProductCategory']) + ".")
+                        st.write("2. **Incentive**: Offer a limited-time **15% discount** to trigger a first purchase.")
 
-                # Initialize Chat History
-                if "messages" not in st.session_state:
-                    st.session_state.messages = []
-
-                # Display Chat History
-                for message in st.session_state.messages:
-                    with st.chat_message(message["role"]):
-                        st.markdown(message["content"])
-
-                # Chat Input
-                if prompt := st.chat_input("Ask me about this customer..."):
-                    st.session_state.messages.append({"role": "user", "content": prompt})
-                    with st.chat_message("user"):
-                        st.markdown(prompt)
-
-                    with st.chat_message("assistant"):
-                        # Get API Key from Secrets or Environment
-                        api_key = st.secrets.get("GEMINI_API_KEY") or os.environ.get("GEMINI_API_KEY")
-                        success = False
-                        
-                        if api_key:
-                            # 🚀 Try multiple model names automatically for better compatibility
-                            # gemini-pro is often the most stable across all regions
-                            models_to_try = [
-                                'gemini-pro',
-                                'gemini-1.5-flash', 
-                                'gemini-2.0-flash', 
-                                'gemini-1.5-flash-latest',
-                                'gemini-1.0-pro'
-                            ]
-                            for model_name in models_to_try:
-                                try:
-                                    genai.configure(api_key=api_key)
-                                    ai_model = genai.GenerativeModel(model_name)
-                                    context = f"Customer Data: {st.session_state.last_prediction['data']}. Prediction: {st.session_state.last_prediction['status']}. Question: {prompt}. Act as a senior retail analyst."
-                                    response = ai_model.generate_content(context)
-                                    full_response = response.text
-                                    st.markdown(full_response)
-                                    st.session_state.messages.append({"role": "assistant", "content": full_response})
-                                    success = True
-                                    break # Stop if we find a working model
-                                except:
-                                    continue # Try the next one if it fails
-                        
-                        if not success:
-                            # 🧠 STRATEGIC CONSULTANT FALLBACK (Much Smarter)
-                            data = st.session_state.last_prediction['data']
-                            is_p = st.session_state.last_prediction['is_purchase']
-                            status = st.session_state.last_prediction['status']
-                            
-                            # Keywords for different types of questions
-                            conv_keys = ["conversion", "improve", "change", "convert", "buy", "how to", "sell"]
-                            why_keys = ["why", "reason", "factor", "because"]
-                            
-                            prompt_l = prompt.lower()
-
-                            if any(k in prompt_l for k in conv_keys):
-                                if not is_p:
-                                    # Strategy to flip a 'No' to a 'Yes'
-                                    if data['TimeSpentOnWebsite'] < 20:
-                                        fallback = f"🚀 **Conversion Strategy:** The primary bottleneck is **Engagement**. At {data['TimeSpentOnWebsite']} mins, the customer is 'bouncing' too early. **Action:** Implement a 'Wait! Don't Go' popup with a personalized recommendation for Category {data['ProductCategory']}."
-                                    elif data['DiscountsAvailed'] < 3:
-                                        fallback = f"🚀 **Conversion Strategy:** This customer is price-sensitive. They have only used {data['DiscountsAvailed']} discounts. **Action:** A targeted 15% 'First-Time Buyer' discount would likely trigger the purchase intent."
-                                    else:
-                                        fallback = f"🚀 **Conversion Strategy:** High engagement but no intent suggests a **Trust Gap**. **Action:** Display 'Verified Buyer' reviews and 'Secure Checkout' badges specifically for this customer segment."
-                                else:
-                                    fallback = f"📈 **Growth Strategy:** This customer is already likely to buy! To increase **Average Order Value (AOV)**, offer a bundle deal related to their previous {data['NumberOfPurchases']} purchases."
-                            
-                            elif any(k in prompt_l for k in why_keys):
-                                if data['AnnualIncome'] > 75000 and not is_p:
-                                    fallback = f"🔍 **Analysis:** Even with a high income (${data['AnnualIncome']}), the model predicts 'No Purchase' because the **Frequency** ({data['NumberOfPurchases']} purchases) is too low for their age group ({data['Age']}). They are a 'High-Value/Low-Loyalty' risk."
-                                elif data['TimeSpentOnWebsite'] > 25:
-                                    fallback = f"🔍 **Analysis:** The strongest positive factor here is **Dwell Time** ({data['TimeSpentOnWebsite']} mins). This indicates high interest, but other friction points (like lack of loyalty status) are holding back the final conversion."
-                                else:
-                                    fallback = f"🔍 **Analysis:** The prediction is driven by the 'Engagement-to-Income' ratio. For this income bracket, we expect more than {data['TimeSpentOnWebsite']} minutes of browsing before a decision is made."
-                            
-                            else:
-                                fallback = f"📋 **General Insight:** This {data['Age']}-year-old customer in Category {data['ProductCategory']} shows patterns typical of a 'Window Shopper'. Focus on long-term email nurturing rather than immediate hard-selling."
-
-                            st.markdown(fallback)
-                            st.session_state.messages.append({"role": "assistant", "content": fallback})
-                            st.info("💡 Pro-Tip: I'm analyzing the specific relationship between this customer's income, time spent, and discount history.")
+                # Visual Insight Chart
+                st.markdown("#### 📈 Profile Strength")
+                chart_data = pd.DataFrame({
+                    'Metric': ['Income', 'Engagement', 'Experience'],
+                    'Score': [data['AnnualIncome']/150000, data['TimeOnWebsite']/60, data['NumberOfPriorPurchases']/20]
+                })
+                st.bar_chart(chart_data.set_index('Metric'))
 
         # --- Tab 2: Batch Prediction ---
         with tab2:
