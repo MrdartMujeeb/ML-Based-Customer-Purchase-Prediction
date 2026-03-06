@@ -17,7 +17,6 @@ st.set_page_config(
 # -----------------------------
 st.markdown("""
 <style>
-
 .team-img{
     border-radius:50%;
     width:220px;
@@ -26,7 +25,6 @@ st.markdown("""
     border:5px solid #f0f2f6;
     box-shadow:0px 6px 18px rgba(0,0,0,0.2);
 }
-
 .img-container{
     display:flex;
     flex-direction:column;
@@ -35,7 +33,6 @@ st.markdown("""
     text-align:center;
     padding:20px;
 }
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -58,15 +55,11 @@ FEATURE_COLUMNS = [
 # -----------------------------
 @st.cache_resource
 def load_models():
-
     try:
-
         scaler = joblib.load("preprocessor.pkl")
-
         logistic = joblib.load("logistic_regression_model.pkl")
         rf = joblib.load("random_forest_model.pkl")
         dt = joblib.load("decision_tree_model.pkl")
-
         xgb = XGBClassifier()
         xgb.load_model("xgboost_model.json")
 
@@ -78,12 +71,9 @@ def load_models():
         }
 
         return scaler, models
-
     except Exception as e:
-
         st.error(f"Model loading failed: {e}")
         return None, None
-
 
 scaler, models = load_models()
 
@@ -91,9 +81,7 @@ scaler, models = load_models()
 # Sidebar
 # -----------------------------
 with st.sidebar:
-
     st.title("🚀 Navigation")
-
     page = st.radio(
         "Go to",
         [
@@ -102,16 +90,13 @@ with st.sidebar:
             "🎓 Our Mentors"
         ]
     )
-
     st.divider()
-
     st.caption("Built with ❤️ by Team Mujeeb")
 
 # -----------------------------
 # HOME PAGE
 # -----------------------------
 if page == "🏠 Home (Predictor)":
-
     st.title("🛍️ Purchase Intelligence Pro")
 
     st.markdown("""
@@ -124,9 +109,7 @@ This application uses **Machine Learning models** to analyze customer behavior a
 🔹 Helps businesses **identify high-value customers**
 
 🔹 Supports **Single Prediction and Batch Prediction (CSV)**
-
 """)
-
     st.divider()
 
     # -----------------------------
@@ -142,15 +125,14 @@ This application uses **Machine Learning models** to analyze customer behavior a
             "XGBoost"
         ],
         "Accuracy":[
-            0.82,
-            0.78,
-            0.89,
-            0.91
+            0.82,  # Logistic Regression
+            0.78,  # Decision Tree
+            0.91,  # Random Forest (top)
+            0.90   # XGBoost
         ]
     })
 
     st.bar_chart(performance_data.set_index("Model"))
-
     st.divider()
 
     if models is None:
@@ -163,203 +145,116 @@ This application uses **Machine Learning models** to analyze customer behavior a
 
     tab1, tab2 = st.tabs(["👤 Single Prediction", "📂 Batch Prediction"])
 
-# -----------------------------
-# SINGLE PREDICTION
-# -----------------------------
+    # -----------------------------
+    # SINGLE PREDICTION
+    # -----------------------------
     with tab1:
-
         col1, col2 = st.columns(2)
 
         with col1:
-
-            age = st.number_input("Age",18,70,35)
-
+            age = st.number_input("Age", 18, 70, 35)
             gender = st.selectbox(
                 "Gender",
                 [0,1],
                 format_func=lambda x:"Female" if x==0 else "Male"
             )
-
-            income = st.number_input("Annual Income",value=60000)
-
-            purchases = st.number_input(
-                "Number of Previous Purchases",
-                0,20,5
-            )
+            income = st.number_input("Annual Income", value=60000)
+            purchases = st.number_input("Number of Previous Purchases", 0, 20, 5)
 
         with col2:
-
-            category = st.selectbox(
-                "Product Category",
-                [0,1,2,3,4]
-            )
-
-            time_spent = st.number_input(
-                "Time Spent On Website (minutes)",
-                value=25.0
-            )
-
+            category = st.selectbox("Product Category", [0,1,2,3,4])
+            time_spent = st.number_input("Time Spent On Website (minutes)", value=25.0)
             loyalty = st.selectbox(
                 "Loyalty Program",
                 [0,1],
                 format_func=lambda x:"No" if x==0 else "Yes"
             )
-
-            discounts = st.slider(
-                "Discounts Availed",
-                0,5,1
-            )
+            discounts = st.slider("Discounts Availed", 0, 5, 1)
 
         if st.button("Predict"):
-
             try:
-
-                input_data = pd.DataFrame([[
-                    age,
-                    gender,
-                    income,
-                    purchases,
-                    category,
-                    time_spent,
-                    loyalty,
-                    discounts
-                ]],columns=FEATURE_COLUMNS)
-
+                input_data = pd.DataFrame([[age, gender, income, purchases, category, time_spent, loyalty, discounts]],
+                                           columns=FEATURE_COLUMNS)
                 input_scaled = scaler.transform(input_data)
-
                 model = models[model_choice]
-
                 prediction = model.predict(input_scaled)[0]
-
                 probability = model.predict_proba(input_scaled)[0][1]
-
                 st.divider()
 
                 if prediction == 1:
-
-                    st.success(
-                        f"✅ Customer is Likely to Purchase\n\nConfidence: {probability:.2f}"
-                    )
-
+                    st.success(f"✅ Customer is Likely to Purchase\n\nConfidence: {probability:.2f}")
                 else:
-
-                    st.warning(
-                        f"❌ Customer is Unlikely to Purchase\n\nConfidence: {1-probability:.2f}"
-                    )
+                    st.warning(f"❌ Customer is Unlikely to Purchase\n\nConfidence: {1-probability:.2f}")
 
                 st.subheader("Input Summary")
-
                 st.dataframe(input_data)
-
             except Exception as e:
-
                 st.error(f"Prediction error: {e}")
 
-# -----------------------------
-# BATCH PREDICTION
-# -----------------------------
+    # -----------------------------
+    # BATCH PREDICTION
+    # -----------------------------
     with tab2:
-
-        uploaded_file = st.file_uploader("Upload CSV File",type="csv")
-
+        uploaded_file = st.file_uploader("Upload CSV File", type="csv")
         if uploaded_file:
-
             data = pd.read_csv(uploaded_file)
-
             st.dataframe(data)
 
             if st.button("Run Batch Prediction"):
-
                 try:
-
                     if not all(col in data.columns for col in FEATURE_COLUMNS):
-
                         st.error("CSV columns do not match required features")
-
                     else:
-
                         X = data[FEATURE_COLUMNS]
-
                         X_scaled = scaler.transform(X)
-
                         model = models[model_choice]
-
                         preds = model.predict(X_scaled)
-
                         data["Prediction"] = preds
-
-                        data["Prediction_Label"] = data["Prediction"].map(
-                            {1:"Purchase",0:"No Purchase"}
-                        )
-
+                        data["Prediction_Label"] = data["Prediction"].map({1:"Purchase",0:"No Purchase"})
                         st.dataframe(data)
-
                         csv = data.to_csv(index=False).encode("utf-8")
-
-                        st.download_button(
-                            "Download Results",
-                            csv,
-                            "prediction_results.csv",
-                            "text/csv"
-                        )
-
+                        st.download_button("Download Results", csv, "prediction_results.csv", "text/csv")
                 except Exception as e:
-
                     st.error(f"Batch prediction failed: {e}")
 
 # -----------------------------
-# ABOUT PAGE
+# ABOUT US PAGE
 # -----------------------------
 elif page == "👥 About Us":
-
     st.title("👥 Meet The Team")
-
-    col1,col2 = st.columns(2)
+    col1, col2 = st.columns(2)
 
     with col1:
-
-        st.markdown(
-            """
-            <div class="img-container">
-            <img src="my image3.jpeg" class="team-img">
-            <h3>Mujeeb Ahmed</h3>
-            <p>Lead Developer</p>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        st.markdown("""
+        <div class="img-container">
+        <img src="mujeeb.jpeg" class="team-img">
+        <h3>Mujeeb Ahmed</h3>
+        <p>Lead Developer</p>
+        </div>
+        """, unsafe_allow_html=True)
 
     with col2:
-
-        st.markdown(
-            """
-            <div class="img-container">
-            <img src="Hassan.jpg" class="team-img">
-            <h3>Muhammad Hassan Solangi</h3>
-            <p>AI Engineer</p>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        st.markdown("""
+        <div class="img-container">
+        <img src="hassan.jpeg" class="team-img">
+        <h3>Muhammad Hassan Solangi</h3>
+        <p>AI Engineer</p>
+        </div>
+        """, unsafe_allow_html=True)
 
 # -----------------------------
-# MENTORS
+# MENTORS PAGE
 # -----------------------------
 elif page == "🎓 Our Mentors":
-
     st.title("🎓 Mentorship")
-
     st.info("IBA Sukkur – PITP Program")
-
-    col1,col2 = st.columns(2)
+    col1, col2 = st.columns(2)
 
     with col1:
-
         st.subheader("Sir Nabeel")
         st.write("Python Mentor")
 
     with col2:
-
         st.subheader("Sir Ismail")
         st.write("Machine Learning Mentor")
 
@@ -369,5 +264,4 @@ elif page == "🎓 Our Mentors":
 # Footer
 # -----------------------------
 st.divider()
-
 st.caption("© 2026 PITP IBA Sukkur Project | Built by Team Mujeeb")
