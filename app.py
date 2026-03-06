@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 # -----------------------------
-# Custom CSS (for circular images)
+# Custom CSS (Circular Images)
 # -----------------------------
 st.markdown("""
 <style>
@@ -195,7 +195,7 @@ elif page == "👥 About Us":
     st.title("👥 Meet The Team")
     col1, col2 = st.columns(2)
 
-    # Load images
+    # Load images from same folder
     mujeeb_img = Image.open("mujeeb.jpeg")
     hassan_img = Image.open("hassan.jpeg")
 
@@ -219,13 +219,13 @@ elif page == "🎓 Our Mentors":
 
     with col1:
         st.subheader("Sir Nabeel")
-        st.write("Data Science")
+        st.write("Python Mentor")
 
     with col2:
         st.subheader("Sir Ismail")
-        st.write("Data Science Mentor")
+        st.write("Machine Learning Mentor")
 
-    st.success("Special thanks to Sir Altaf Hussain Samo and the entire IBA Sukkur team.")
+    st.success("Special thanks to Sir Altaf Hussain and the entire IBA Sukkur team.")
 
 # -----------------------------
 # Footer
