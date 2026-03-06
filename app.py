@@ -2,7 +2,6 @@ import streamlit as st
 import joblib
 import pandas as pd
 from xgboost import XGBClassifier
-from PIL import Image
 
 # -----------------------------
 # Page Configuration
@@ -12,30 +11,6 @@ st.set_page_config(
     page_icon="🛍️",
     layout="wide"
 )
-
-# -----------------------------
-# Custom CSS (Circular Images)
-# -----------------------------
-st.markdown("""
-<style>
-.team-img-container{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-    padding:10px;
-}
-.team-img{
-    border-radius:50%;
-    width:220px;
-    height:220px;
-    object-fit:cover;
-    border:5px solid #f0f2f6;
-    box-shadow:0px 6px 18px rgba(0,0,0,0.2);
-}
-</style>
-""", unsafe_allow_html=True)
 
 # -----------------------------
 # Feature Order
@@ -96,7 +71,7 @@ This app predicts whether a customer is likely to make a purchase.
     st.subheader("📊 Model Performance Comparison")
     performance_data = pd.DataFrame({
         "Model": ["Logistic Regression", "Decision Tree", "Random Forest", "XGBoost"],
-        "Accuracy": [0.82, 0.78, 0.91, 0.90]  # Random Forest top
+        "Accuracy": [0.82, 0.78, 0.91, 0.90]  # Random Forest on top
     })
     st.bar_chart(performance_data.set_index("Model"))
     st.divider()
@@ -165,54 +140,37 @@ This app predicts whether a customer is likely to make a purchase.
 # -----------------------------
 elif page == "👥 About Us":
     st.title("👥 Meet The Team")
-
-    col1, col2 = st.columns(2)
-
-    # Safe image loading
-    try:
-        mujeeb_img = Image.open("mujeeb.jpeg")
-    except:
-        mujeeb_img = None
-
-    try:
-        hassan_img = Image.open("hassan.jpeg")
-    except:
-        hassan_img = None
-
-    with col1:
-        if mujeeb_img:
-            st.image(mujeeb_img, width=220)
-        st.markdown("<h3 style='text-align:center'>Mujeeb Ahmed</h3>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align:center'>Lead Developer</p>", unsafe_allow_html=True)
-
-    with col2:
-        if hassan_img:
-            st.image(hassan_img, width=220)
-        st.markdown("<h3 style='text-align:center'>Muhammad Hassan Solangi</h3>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align:center'>AI Engineer</p>", unsafe_allow_html=True)
-
+    
+    st.subheader("Team Members")
+    st.markdown("""
+- **Mujeeb Ahmed** – Lead Developer  
+- **Muhammad Hassan Solangi** – AI Engineer
+""")
     st.divider()
+    
     st.subheader("📌 Project Overview")
     st.markdown("""
-    In this project, we developed **Purchase Intelligence Pro**, an AI-powered system that predicts whether a customer 
-    is likely to make a purchase using machine learning models including **Logistic Regression, Decision Tree, Random Forest, and XGBoost**.
-    The app supports **single customer prediction** as well as **batch prediction from CSV files**, helping businesses 
-    identify high-value customers efficiently.
-    """)
-
+In this project, we developed **Purchase Intelligence Pro**, an AI-powered system that predicts whether a customer 
+is likely to make a purchase using machine learning models including **Logistic Regression, Decision Tree, Random Forest, and XGBoost**.
+The app supports **single customer prediction** as well as **batch prediction from CSV files**, helping businesses 
+identify high-value customers efficiently.
+""")
+    st.divider()
+    
     st.subheader("💡 What We Learned")
     st.markdown("""
-- **Python**: From basic syntax to advanced concepts  
+- **Python Programming**: From basics to advanced concepts  
 - **Data Science Libraries**:  
   - `NumPy` for numerical computations  
   - `Pandas` for data manipulation  
   - `Matplotlib` & `Seaborn` for data visualization  
-  - `Scikit-learn` for machine learning models and preprocessing  
-- **Machine Learning Concepts**: Supervised learning, model evaluation, feature scaling, and model comparison  
-- **Practical ML Deployment**: Building and deploying ML apps with **Streamlit**  
-- **Freelancing & Entrepreneurship**: Short classes on freelancing, business basics, and earning online  
-- **Presentation Skills**: How to present projects and explain technical concepts clearly
-    """)
+  - `Scikit-learn` for machine learning and preprocessing  
+- **Machine Learning Concepts**: Supervised learning, model evaluation, feature scaling, model comparison  
+- **Streamlit**: Building and deploying ML apps  
+- **Freelancing & Entrepreneurship**: Basic business, earning online, freelancing skills  
+- **Presentation Skills**: How to present projects and technical concepts clearly
+""")
+    st.divider()
 
 # -----------------------------
 # MENTORS PAGE
