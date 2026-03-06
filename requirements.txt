@@ -7,4 +7,3 @@ numpy
 matplotlib
 seaborn
 joblib
-google-generativeai>=0.7.2
