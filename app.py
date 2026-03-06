@@ -41,14 +41,8 @@ st.markdown("""
 # Feature Order
 # -----------------------------
 FEATURE_COLUMNS = [
-    "Age",
-    "Gender",
-    "AnnualIncome",
-    "NumberOfPurchases",
-    "ProductCategory",
-    "TimeSpentOnWebsite",
-    "LoyaltyProgram",
-    "DiscountsAvailed"
+    "Age", "Gender", "AnnualIncome", "NumberOfPurchases",
+    "ProductCategory", "TimeSpentOnWebsite", "LoyaltyProgram", "DiscountsAvailed"
 ]
 
 # -----------------------------
@@ -82,10 +76,7 @@ scaler, models = load_models()
 # -----------------------------
 with st.sidebar:
     st.title("🚀 Navigation")
-    page = st.radio(
-        "Go to",
-        ["🏠 Home (Predictor)", "👥 About Us", "🎓 Our Mentors"]
-    )
+    page = st.radio("Go to", ["🏠 Home (Predictor)", "👥 About Us", "🎓 Our Mentors"])
     st.divider()
     st.caption("Built with ❤️ by Team Mujeeb")
 
@@ -94,30 +85,19 @@ with st.sidebar:
 # -----------------------------
 if page == "🏠 Home (Predictor)":
     st.title("🛍️ Purchase Intelligence Pro")
-
     st.markdown("""
 ### AI-Powered Customer Purchase Prediction System
-
-This application uses **Machine Learning models** to analyze customer behavior and predict whether a customer is likely to make a purchase.
-
-🔹 Built using **Logistic Regression, Decision Tree, Random Forest, and XGBoost**
-
-🔹 Helps businesses **identify high-value customers**
-
-🔹 Supports **Single Prediction and Batch Prediction (CSV)**
+This app predicts whether a customer is likely to make a purchase.
+- Uses Logistic Regression, Decision Tree, Random Forest, and XGBoost
+- Single and Batch prediction supported
 """)
     st.divider()
 
-    # -----------------------------
-    # Model Performance Chart
-    # -----------------------------
     st.subheader("📊 Model Performance Comparison")
-
     performance_data = pd.DataFrame({
         "Model": ["Logistic Regression", "Decision Tree", "Random Forest", "XGBoost"],
-        "Accuracy": [0.82, 0.78, 0.91, 0.90]  # Random Forest on top
+        "Accuracy": [0.82, 0.78, 0.91, 0.90]  # Random Forest top
     })
-
     st.bar_chart(performance_data.set_index("Model"))
     st.divider()
 
@@ -127,9 +107,7 @@ This application uses **Machine Learning models** to analyze customer behavior a
     model_choice = st.selectbox("Select Prediction Model", list(models.keys()))
     tab1, tab2 = st.tabs(["👤 Single Prediction", "📂 Batch Prediction"])
 
-    # -----------------------------
     # SINGLE PREDICTION
-    # -----------------------------
     with tab1:
         col1, col2 = st.columns(2)
         with col1:
@@ -138,9 +116,9 @@ This application uses **Machine Learning models** to analyze customer behavior a
             income = st.number_input("Annual Income", value=60000)
             purchases = st.number_input("Number of Previous Purchases", 0, 20, 5)
         with col2:
-            category = st.selectbox("Product Category", [0, 1, 2, 3, 4])
+            category = st.selectbox("Product Category", [0,1,2,3,4])
             time_spent = st.number_input("Time Spent On Website (minutes)", value=25.0)
-            loyalty = st.selectbox("Loyalty Program", [0, 1], format_func=lambda x: "No" if x == 0 else "Yes")
+            loyalty = st.selectbox("Loyalty Program", [0,1], format_func=lambda x:"No" if x==0 else "Yes")
             discounts = st.slider("Discounts Availed", 0, 5, 1)
 
         if st.button("Predict"):
@@ -152,20 +130,16 @@ This application uses **Machine Learning models** to analyze customer behavior a
                 prediction = model.predict(input_scaled)[0]
                 probability = model.predict_proba(input_scaled)[0][1]
                 st.divider()
-
-                if prediction == 1:
-                    st.success(f"✅ Customer is Likely to Purchase\n\nConfidence: {probability:.2f}")
+                if prediction==1:
+                    st.success(f"✅ Customer is Likely to Purchase\nConfidence: {probability:.2f}")
                 else:
-                    st.warning(f"❌ Customer is Unlikely to Purchase\n\nConfidence: {1 - probability:.2f}")
-
+                    st.warning(f"❌ Customer is Unlikely to Purchase\nConfidence: {1-probability:.2f}")
                 st.subheader("Input Summary")
                 st.dataframe(input_data)
             except Exception as e:
                 st.error(f"Prediction error: {e}")
 
-    # -----------------------------
     # BATCH PREDICTION
-    # -----------------------------
     with tab2:
         uploaded_file = st.file_uploader("Upload CSV File", type="csv")
         if uploaded_file:
@@ -176,59 +150,61 @@ This application uses **Machine Learning models** to analyze customer behavior a
                     if not all(col in data.columns for col in FEATURE_COLUMNS):
                         st.error("CSV columns do not match required features")
                     else:
-                        X = data[FEATURE_COLUMNS]
-                        X_scaled = scaler.transform(X)
-                        model = models[model_choice]
-                        preds = model.predict(X_scaled)
+                        X_scaled = scaler.transform(data[FEATURE_COLUMNS])
+                        preds = models[model_choice].predict(X_scaled)
                         data["Prediction"] = preds
-                        data["Prediction_Label"] = data["Prediction"].map({1: "Purchase", 0: "No Purchase"})
+                        data["Prediction_Label"] = data["Prediction"].map({1:"Purchase",0:"No Purchase"})
                         st.dataframe(data)
-                        csv = data.to_csv(index=False).encode("utf-8")
-                        st.download_button("Download Results", csv, "prediction_results.csv", "text/csv")
+                        st.download_button("Download Results", data.to_csv(index=False).encode("utf-8"),
+                                           "prediction_results.csv", "text/csv")
                 except Exception as e:
                     st.error(f"Batch prediction failed: {e}")
 
-# -----------------------------
 # ABOUT US PAGE
-# -----------------------------
 elif page == "👥 About Us":
     st.title("👥 Meet The Team")
     col1, col2 = st.columns(2)
 
-    # Load images from same folder
-    mujeeb_img = Image.open("mujeeb.jpeg")
-    hassan_img = Image.open("hassan.jpeg")
+    # Load images safely
+    try:
+        mujeeb_img = Image.open("mujeeb.jpeg")
+    except:
+        mujeeb_img = None
+
+    try:
+        hassan_img = Image.open("hassan.jpeg")
+    except:
+        hassan_img = None
 
     with col1:
-        st.image(mujeeb_img, width=220)
+        if mujeeb_img:
+            st.image(mujeeb_img, width=220)
+        else:
+            st.warning("Mujeeb image not found")
         st.markdown("<h3 style='text-align:center'>Mujeeb Ahmed</h3>", unsafe_allow_html=True)
         st.markdown("<p style='text-align:center'>Lead Developer</p>", unsafe_allow_html=True)
 
     with col2:
-        st.image(hassan_img, width=220)
+        if hassan_img:
+            st.image(hassan_img, width=220)
+        else:
+            st.warning("Hassan image not found")
         st.markdown("<h3 style='text-align:center'>Muhammad Hassan Solangi</h3>", unsafe_allow_html=True)
         st.markdown("<p style='text-align:center'>AI Engineer</p>", unsafe_allow_html=True)
 
-# -----------------------------
 # MENTORS PAGE
-# -----------------------------
 elif page == "🎓 Our Mentors":
     st.title("🎓 Mentorship")
     st.info("IBA Sukkur – PITP Program")
     col1, col2 = st.columns(2)
-
     with col1:
         st.subheader("Sir Nabeel")
         st.write("Python Mentor")
-
     with col2:
         st.subheader("Sir Ismail")
         st.write("Machine Learning Mentor")
-
     st.success("Special thanks to Sir Altaf Hussain and the entire IBA Sukkur team.")
 
-# -----------------------------
 # Footer
-# -----------------------------
 st.divider()
 st.caption("© 2026 PITP IBA Sukkur Project | Built by Team Mujeeb")
