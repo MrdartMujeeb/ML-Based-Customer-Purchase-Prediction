@@ -1,38 +1,22 @@
 import streamlit as st
 import joblib
 import pandas as pd
-import google.generativeai as genai
-import os
-import base64
 from xgboost import XGBClassifier
-
-# --- Helper Function to Load Local Images ---
-def get_base64_image(image_path):
-    try:
-        with open(image_path, "rb") as img_file:
-            return f"data:image/png;base64,{base64.b64encode(img_file.read()).decode()}"
-    except:
-        # Fallback to a placeholder if file is not found
-        return "https://picsum.photos/seed/profile/400/400"
 
 # --- Page Config ---
 st.set_page_config(page_title="Purchase Intelligence Pro", page_icon="🛍️", layout="wide")
 
-# --- Custom CSS for Rounded Images & Premium Look ---
+# --- Custom CSS for Premium Look ---
 st.markdown("""
     <style>
     .team-img {
         border-radius: 50%;
-        width: 220px;
-        height: 220px;
+        width: 200px;
+        height: 200px;
         object-fit: cover;
-        margin-bottom: 20px;
-        border: 5px solid #f0f2f6;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        transition: transform 0.3s ease;
-    }
-    .team-img:hover {
-        transform: scale(1.05);
+        margin-bottom: 15px;
+        border: 4px solid #f0f2f6;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
     }
     .img-container {
         display: flex;
@@ -40,22 +24,20 @@ st.markdown("""
         align-items: center;
         text-align: center;
         padding: 20px;
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        background: #f8f9fa;
+        border-radius: 15px;
         margin: 10px;
     }
     .banner-img {
-        border-radius: 20px;
+        border-radius: 15px;
         width: 100%;
         height: auto;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        border: 1px solid rgba(0,0,0,0.05);
+        margin-top: 20px;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# --- Define Strict Feature Order (Crucial for Model Accuracy) ---
+# --- Define Strict Feature Order ---
 FEATURE_COLUMNS = [
     "Age", "Gender", "AnnualIncome", "NumberOfPurchases", 
     "ProductCategory", "TimeSpentOnWebsite", "LoyaltyProgram", "DiscountsAvailed"
@@ -122,21 +104,17 @@ if page == "🏠 Home (Predictor)":
                 input_data = pd.DataFrame([[age, gender, income, purchases, category, time_spent, loyalty, discounts]], 
                                         columns=FEATURE_COLUMNS)
                 
-                # Scaling logic
-                input_processed = scaler.transform(input_data) if model_choice in ["Logistic Regression", "XGBoost"] else input_data
+                # Apply scaling to ALL models to ensure consistency
+                input_processed = scaler.transform(input_data)
                 
                 prediction = models[model_choice].predict(input_processed)[0]
                 
-                # Store prediction in session state for AI context
+                # Store prediction in session state
                 st.session_state['last_prediction'] = {
                     'status': "Likely to Purchase" if prediction == 1 else "Unlikely to Purchase",
                     'data': input_data.to_dict(orient='records')[0],
                     'is_purchase': True if prediction == 1 else False
                 }
-                
-                # Clear previous chat when a new prediction is made
-                if "messages" in st.session_state:
-                    del st.session_state.messages
                 
             # --- DISPLAY PREDICTION RESULT (Persistent) ---
             if 'last_prediction' in st.session_state:
@@ -198,7 +176,7 @@ if page == "🏠 Home (Predictor)":
                     try:
                         if all(col in data.columns for col in FEATURE_COLUMNS):
                             data_for_model = data[FEATURE_COLUMNS]
-                            data_processed = scaler.transform(data_for_model) if model_choice in ["Logistic Regression", "XGBoost"] else data_for_model
+                            data_processed = scaler.transform(data_for_model)
                             preds = models[model_choice].predict(data_processed)
                             data['Prediction_Label'] = ["✅ Purchase" if p == 1 else "❌ No Purchase" for p in preds]
 
@@ -223,27 +201,21 @@ elif page == "👥 About Us":
     
     col1, col2 = st.columns(2)
     
-    # 📸 UPDATE THESE FILENAMES TO YOUR ACTUAL PHOTO NAMES IN GITHUB
-    mujeeb_img = get_base64_image("mujeeb.png") 
-    hassan_img = get_base64_image("hassan.png")
-    
     with col1:
         st.markdown(f"""
             <div class="img-container">
-                <img src="{mujeeb_img}" class="team-img">
+                <img src="https://picsum.photos/seed/mujeeb/400/400" class="team-img">
                 <h3>Mujeeb Ahmed</h3>
-                <p><b>Lead Developer & Data Scientist</b></p>
-                <p>Responsible for core architecture and UI design.</p>
+                <p><b>Lead Developer</b></p>
             </div>
         """, unsafe_allow_html=True)
         
     with col2:
         st.markdown(f"""
             <div class="img-container">
-                <img src="{hassan_img}" class="team-img">
-                <h3>Muhammad Hassan Solangi</h3>
-                <p><b>ML Engineer & Researcher</b></p>
-                <p>Focused on model optimization and feature engineering.</p>
+                <img src="https://picsum.photos/seed/hassan/400/400" class="team-img">
+                <h3>Muhammad Hassan</h3>
+                <p><b>ML Engineer</b></p>
             </div>
         """, unsafe_allow_html=True)
 
@@ -251,38 +223,28 @@ elif page == "👥 About Us":
 # Page 3: Our Mentors
 # -----------------------------
 elif page == "🎓 Our Mentors":
-    st.title("🎓 Mentorship & Support")
-    st.info("**PITP Program** - IBA Sukkur University")
-    
-    st.subheader("👨‍🏫 Our Teachers")
-    
-    # 📸 UPDATE THESE FILENAMES TO YOUR ACTUAL PHOTO NAMES IN GITHUB
-    nabeel_img = get_base64_image("nabeel.png")
-    ismail_img = get_base64_image("ismail.png")
+    st.title("🎓 Mentorship")
+    st.info("IBA Sukkur University - PITP Program")
     
     t1, t2 = st.columns(2)
     with t1:
         st.markdown(f"""
             <div class="img-container">
-                <img src="{nabeel_img}" class="team-img">
+                <img src="https://picsum.photos/seed/nabeel/400/400" class="team-img">
                 <h3>Sir Nabeel</h3>
-                <p><b>Mentor for Python & Streamlit</b></p>
+                <p>Mentor for Python</p>
             </div>
         """, unsafe_allow_html=True)
     with t2:
         st.markdown(f"""
             <div class="img-container">
-                <img src="{ismail_img}" class="team-img">
+                <img src="https://picsum.photos/seed/ismail/400/400" class="team-img">
                 <h3>Sir Ismail</h3>
-                <p><b>Mentor for Machine Learning</b></p>
+                <p>Mentor for ML</p>
             </div>
         """, unsafe_allow_html=True)
         
-    st.success("Special thanks to **Altaf Hussain (Director)** and his team.")
-    
-    # 📸 UPDATE THIS TO YOUR BANNER FILENAME IN GITHUB
-    banner_img = get_base64_image("university_banner.png")
-    st.markdown(f'<img src="{banner_img}" class="banner-img">', unsafe_allow_html=True)
+    st.success("Special thanks to Sir Altaf Hussain and the entire IBA team.")
 
 # --- Footer ---
 st.divider()
